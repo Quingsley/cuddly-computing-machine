@@ -3,9 +3,13 @@ import { useContext } from "react";
 import CartContext from "../../context/cart-context";
 import CartItem from "./CartItem";
 import CartModel from "../../models/cart-model";
+import Checkout from "./Checkout";
+import { useState } from "react";
 
 const Cart = (props: { onClose: () => void }) => {
   const cartCtx = useContext(CartContext);
+
+  const [isCheckout, setIsCheckout] = useState(false);
 
   const onAddHandler = (item: CartModel) => {
     cartCtx.addItem({ ...item, amount: 1 });
@@ -14,6 +18,10 @@ const Cart = (props: { onClose: () => void }) => {
   const onRemoveHandler = (id: string) => {
     cartCtx.removeItem(id);
   };
+  const isCheckoutHandler = () => {
+    setIsCheckout(true);
+  };
+
   const cartItems = (
     <ul className={classes["cart-items"]}>
       {cartCtx.items.map((item) => {
@@ -40,10 +48,17 @@ const Cart = (props: { onClose: () => void }) => {
         <span>{amount}</span>
       </div>
       <div className={classes.actions}>
-        <button className={classes["button--alt"]} onClick={props.onClose}>
-          Close
-        </button>
-        {hasItems && <button className={classes.button}>Order</button>}
+        {hasItems && isCheckout && <Checkout onCancel={props.onClose} />}
+        {hasItems && !isCheckout && (
+          <button className={classes["button--alt"]} onClick={props.onClose}>
+            Close
+          </button>
+        )}
+        {hasItems && !isCheckout && (
+          <button className={classes.button} onClick={isCheckoutHandler}>
+            Order
+          </button>
+        )}
       </div>
     </div>
   );
