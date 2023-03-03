@@ -8,6 +8,7 @@ interface CartProvidertProps {
 enum Action {
   add = "ADD",
   remove = "REMOVE",
+  clear = "CLEAR",
 }
 
 type typeCartState = {
@@ -74,6 +75,9 @@ const cartReducer = (
       };
     }
   }
+  if (action.type === Action.clear) {
+    return defaultCartState;
+  }
   return defaultCartState;
 };
 
@@ -91,11 +95,19 @@ const CartProvider = (props: CartProvidertProps) => {
       item: { id: id, name: "", price: 0, amount: 0 },
     });
   };
+
+  const clearCartHandler = () => {
+    dispatchCartState({
+      type: Action.clear,
+      item: { id: "", name: "", price: 0, amount: 0 },
+    });
+  };
   const ctxObj = {
     items: cartState.items,
     totalAmount: cartState.totalAmount,
     addItem: addCartItemHandler,
     removeItem: removeItemHandler,
+    clearCart: clearCartHandler,
   };
   return (
     <CartContext.Provider value={ctxObj}>{props.children}</CartContext.Provider>
