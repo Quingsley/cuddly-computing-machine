@@ -10,6 +10,7 @@ const Cart = (props: { onClose: () => void }) => {
   const cartCtx = useContext(CartContext);
 
   const [isCheckout, setIsCheckout] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onAddHandler = (item: CartModel) => {
     cartCtx.addItem({ ...item, amount: 1 });
@@ -20,6 +21,35 @@ const Cart = (props: { onClose: () => void }) => {
   };
   const isCheckoutHandler = () => {
     setIsCheckout(true);
+  };
+
+  const checkoutHandler = async (data: {
+    name: string;
+    street: string;
+    city: string;
+    postalCode: string;
+  }) => {
+    try {
+      setIsSubmitting(true);
+      await fetch(
+        "https://elimisha-c5ce8-default-rtdb.europe-west1.firebasedatabase.app/orders.json",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user: data,
+            orderedItems: cartCtx.items,
+          }),
+        }
+      );
+      setIsSubmitting(false);
+      cartCtx.clearCart();
+    } catch (error) {
+      setIsSubmitting(false);
+      console.log(error);
+    }
   };
 
   const cartItems = (
@@ -40,7 +70,8 @@ const Cart = (props: { onClose: () => void }) => {
   );
   const amount = `$ ${cartCtx.totalAmount.toFixed(2)}`;
   const hasItems = cartCtx.items.length > 0;
-  return (
+
+  const cartContent = (
     <div>
       {cartItems}
       <div className={classes.total}>
@@ -48,7 +79,9 @@ const Cart = (props: { onClose: () => void }) => {
         <span>{amount}</span>
       </div>
       <div className={classes.actions}>
-        {hasItems && isCheckout && <Checkout onCancel={props.onClose} />}
+        {hasItems && isCheckout && (
+          <Checkout onConfirm={checkoutHandler} onCancel={props.onClose} />
+        )}
         {hasItems && !isCheckout && (
           <button className={classes["button--alt"]} onClick={props.onClose}>
             Close
@@ -62,6 +95,8 @@ const Cart = (props: { onClose: () => void }) => {
       </div>
     </div>
   );
+  const spinner = <p>Sending Data...</p>;
+  return isSubmitting ? spinner : cartContent;
 };
 
 export default Cart;
